@@ -1,0 +1,601 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Atiku Abubakar: Electoral Intelligence Deck (Enhanced)</title>
+<script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+<script src="https://cdn.jsdelivr.net/npm/topojson-client@3"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<style>
+:root{
+  --bg:#071521; --panel:#ffffff; --paper:#f3f7fb; --ink:#1a2433; --muted:#66788a; --line:#dbe5ee;
+  --green:#0a8f5a; --green-soft:#dff5eb; --navy:#0d2740; --navy2:#133959; --gold:#c8941c; --red:#d94841;
+  --apc:#2f9e44; --pdp:#d94841; --lp:#8e2bb9; --nnpp:#2850a3; --ac:#e2a11b; --gray:#8b9bab;
+  --shadow:0 14px 36px rgba(15,35,55,.08);
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden;background:var(--bg);font-family:Inter,Segoe UI,Roboto,Arial,sans-serif;color:var(--ink)}
+#deck{position:relative;height:100vh;width:100vw}
+.slide{display:none;position:absolute;inset:0;padding:46px 64px 74px;background:var(--paper);overflow:auto}
+.slide.active{display:block}
+.slide.dark{background:radial-gradient(circle at top right,#16476a 0,#0d2237 35%,#071521 100%);color:#fff}
+.kicker{font-size:12px;font-weight:900;letter-spacing:.18em;text-transform:uppercase;color:var(--green);margin-bottom:10px}
+.dark .kicker{color:#8ce4b7}
+h1{margin:0 0 16px;font-size:54px;line-height:1.02;max-width:1050px}
+h2{margin:0 0 14px;font-size:35px;line-height:1.1;color:var(--navy)}
+.dark h2{color:#fff}
+h3{margin:0 0 10px;font-size:21px;color:var(--navy)}
+.dark h3{color:#fff}
+p{font-size:17px;line-height:1.56;margin:8px 0}
+.lead{font-size:22px;line-height:1.5;max-width:1080px;color:#dce8f4}
+.dark .note, .dark .source, .dark .small{color:#b8c8d6}
+.small{font-size:13px;color:var(--muted)}
+.note{font-size:14px;color:var(--muted);line-height:1.45}
+.grid{display:grid;gap:18px}.g2{grid-template-columns:1fr 1fr}.g3{grid-template-columns:repeat(3,1fr)}.g4{grid-template-columns:repeat(4,1fr)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:18px 20px;box-shadow:var(--shadow)}
+.dark .card{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);box-shadow:none}
+.stat{font-size:38px;font-weight:900;line-height:1;color:var(--navy)} .dark .stat{color:#fff}
+.label{font-size:12px;text-transform:uppercase;font-weight:900;letter-spacing:.12em;color:var(--muted);margin-top:8px}
+.dark .label{color:#c5d6e4}
+.row{display:flex;gap:18px;align-items:stretch;flex-wrap:wrap}.row>*{flex:1}
+.callout{background:#eef8f3;border-left:6px solid var(--green);border-radius:15px;padding:16px 20px;margin:16px 0}
+.callout.warn{background:#fff6e7;border-left-color:var(--gold)}
+.callout.danger{background:#fff0f1;border-left-color:#b23a48}
+.badge{display:inline-flex;align-items:center;padding:6px 10px;border-radius:999px;font-size:12px;font-weight:800;background:#ebf1f6;color:#425466}
+.badge.cand{background:#dff5eb;color:#0b6a42}.badge.noballot{background:#fff1de;color:#8d5400}.badge.warn{background:#fce7e7;color:#a82828}
+.source{position:absolute;left:64px;bottom:34px;max-width:82vw;font-size:11px;color:#6f8192;line-height:1.4}
+.timeline{display:grid;grid-template-columns:repeat(5,1fr);gap:14px}
+.tl{border:1px solid var(--line);border-radius:18px;background:#fff;padding:16px;box-shadow:var(--shadow)} .tl .yr{font-size:30px;font-weight:900;color:var(--navy)}
+.party-chip{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:999px;background:#f2f6fa;border:1px solid var(--line);font-weight:800;font-size:13px}
+.swatch{width:18px;height:18px;border-radius:50%}
+.party-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.party-card{background:#fff;border:1px solid var(--line);border-radius:20px;padding:18px;box-shadow:var(--shadow)}
+.party-card .logo-wrap{height:100px;display:flex;align-items:center;justify-content:center;margin-bottom:10px}
+.party-card img.logo{max-height:90px;max-width:100%;object-fit:contain}
+.party-card h3{margin:6px 0 6px;font-size:18px}.party-card .colors{display:flex;gap:6px;margin:10px 0}
+.color-box{width:26px;height:16px;border-radius:6px;border:1px solid rgba(0,0,0,.08)}
+.hero{display:grid;grid-template-columns:1.2fr .8fr;gap:26px;align-items:center}
+.hero-visual{min-height:430px;border-radius:26px;background:linear-gradient(135deg,rgba(255,255,255,.08),rgba(255,255,255,.03));border:1px solid rgba(255,255,255,.13);display:flex;align-items:end;justify-content:center;overflow:hidden;position:relative}
+.hero-visual img{width:100%;height:100%;object-fit:cover;opacity:.92}
+.hero-visual:after{content:'';position:absolute;inset:0;background:linear-gradient(to top,rgba(7,21,33,.62),rgba(7,21,33,.12),transparent)}
+.hero-caption{position:absolute;left:24px;bottom:22px;z-index:2;color:#fff}
+.metric-ribbon{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:14px}
+.ribbon-card{padding:16px;border-radius:16px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12)}
+.ribbon-card .stat{font-size:28px}
+.photo-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.candidate{background:#fff;border:1px solid var(--line);border-radius:18px;overflow:hidden;box-shadow:var(--shadow)}
+.candidate .ph{height:180px;background:#eef4f8}.candidate img{width:100%;height:100%;object-fit:cover}
+.candidate .bd{padding:14px 14px 16px}.candidate .name{font-size:18px;font-weight:900;color:var(--navy)}
+.candidate .sub{font-size:13px;color:var(--muted);margin-top:4px}
+.chip{display:inline-flex;padding:5px 9px;border-radius:999px;font-size:11px;font-weight:900;color:#fff;margin-top:9px}
+.chip.PDP{background:var(--pdp)} .chip.APC{background:var(--apc)} .chip.LP{background:var(--lp)} .chip.NNPP{background:var(--nnpp)} .chip.AC{background:var(--ac);color:#222}
+.chartbox{height:320px;background:#fff;border:1px solid var(--line);border-radius:18px;padding:14px;box-shadow:var(--shadow)}
+.dark .chartbox{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.1);box-shadow:none}
+.twocol{display:grid;grid-template-columns:1.05fr .95fr;gap:18px}
+.maphud{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:10px 0 14px}
+.maphud .hud{background:#fff;border:1px solid var(--line);border-radius:16px;padding:12px 14px;box-shadow:var(--shadow)}
+.maphud .hud .big{font-size:23px;font-weight:900;color:var(--navy)}
+.controls{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 12px}
+.pill{border:1px solid var(--line);background:#fff;border-radius:999px;padding:8px 12px;font-weight:800;font-size:12px;cursor:pointer;box-shadow:var(--shadow)}
+.pill.active{background:var(--navy);color:#fff;border-color:var(--navy)}
+.map-wrap{display:grid;grid-template-columns:1.33fr .67fr;gap:18px;align-items:start}
+.map-card{background:#fff;border:1px solid var(--line);border-radius:24px;padding:14px;box-shadow:var(--shadow);position:relative}
+#ngMap{width:100%;height:530px;border-radius:18px;background:radial-gradient(circle at 50% 20%,#f3f9fc 0,#eef4f8 50%,#e7eff5 100%)}
+.map-card .map-actions{position:absolute;top:18px;right:18px;display:flex;gap:8px;z-index:10}
+.map-btn{border:0;background:#fff;border-radius:12px;box-shadow:var(--shadow);padding:8px 10px;cursor:pointer;font-weight:900}
+.state-path{stroke:#fff;stroke-width:1.1;cursor:pointer;transition:all .16s}
+.state-path:hover{stroke:#111827;stroke-width:2.1;filter:drop-shadow(0 4px 8px rgba(0,0,0,.15))}
+.state-label{font-size:8.5px;fill:#5f7182;pointer-events:none;text-anchor:middle}
+.state-panel{background:#fff;border:1px solid var(--line);border-radius:24px;padding:18px;min-height:560px;box-shadow:var(--shadow)}
+.minirow{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid #edf1f5}.minirow:last-child{border-bottom:none}
+.legend{display:flex;gap:12px;flex-wrap:wrap;font-size:12px;margin-top:8px}.dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px}
+.tooltip{position:fixed;z-index:3000;background:#071521;color:#fff;padding:10px 12px;border-radius:12px;font-size:12px;pointer-events:none;box-shadow:0 12px 28px rgba(0,0,0,.22);display:none;max-width:280px}
+.panel-mini-chart{height:160px;margin-top:10px;padding-top:8px}
+.ranking{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}.rankbox{background:#fff;border:1px solid var(--line);border-radius:18px;padding:16px;box-shadow:var(--shadow)}
+.rankbox ol{margin:10px 0 0;padding-left:24px;line-height:1.7}
+.evidence{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}.ev{background:#fff;border:1px solid var(--line);border-radius:18px;padding:18px;box-shadow:var(--shadow)}
+.ev.fact{border-top:6px solid var(--green)} .ev.activity{border-top:6px solid var(--gold)} .ev.interp{border-top:6px solid #718096}
+.quote{font-size:28px;font-weight:800;line-height:1.35;max-width:980px;color:var(--navy)} .dark .quote{color:#fff}
+.method li{margin:8px 0;line-height:1.45}
+.nav{position:fixed;right:24px;bottom:20px;z-index:4000;display:flex;gap:8px;align-items:center;background:rgba(7,21,33,.88);padding:9px 10px;border-radius:14px;backdrop-filter:blur(12px)}
+.nav button{width:36px;height:34px;border-radius:10px;border:0;background:#fff;color:var(--navy);font-weight:900;cursor:pointer}.nav .count{color:#fff;font-size:12px;min-width:68px;text-align:center}
+.progress{position:fixed;left:0;bottom:0;height:5px;background:var(--green);z-index:5000;transition:width .25s}
+.compact-table{width:100%;border-collapse:collapse;border-radius:18px;overflow:hidden;background:#fff;box-shadow:var(--shadow)}
+.compact-table th,.compact-table td{padding:11px 12px;border-bottom:1px solid #e7eef3;text-align:left;font-size:13px}
+.compact-table th{background:#edf3f8;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--navy)}
+.compact-table tr:last-child td{border-bottom:none}
+hr.sep{border:none;height:1px;background:#e4ebf0;margin:16px 0}
+
+.icon-card{display:flex;gap:14px;align-items:flex-start}
+.icon-badge{width:52px;height:52px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:900;background:linear-gradient(135deg,#eff7ff,#dff1e7);border:1px solid var(--line);flex:0 0 52px}
+.winner-strip{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-top:16px}
+.winner-mini{background:#fff;border:1px solid var(--line);border-radius:18px;overflow:hidden;box-shadow:var(--shadow)}
+.winner-mini .pic{height:110px;background:#eef3f7}
+.winner-mini .pic img{width:100%;height:100%;object-fit:cover}
+.winner-mini .bd{padding:10px 12px}
+.logo-line{display:flex;gap:12px;flex-wrap:wrap;margin-top:14px}
+.logo-pill{display:flex;align-items:center;gap:10px;background:#fff;border:1px solid var(--line);border-radius:999px;padding:8px 12px;box-shadow:var(--shadow)}
+.logo-pill img{width:26px;height:26px;object-fit:contain}
+.podium{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:16px}
+.podium .candidate{box-shadow:none}
+
+@media (max-width:980px){
+ .slide{padding:32px 24px 76px}.hero,.twocol,.map-wrap,.timeline,.party-grid,.photo-grid,.grid.g2,.grid.g3,.grid.g4,.evidence,.ranking,.metric-ribbon,.maphud{grid-template-columns:1fr}.source{left:24px}
+ h1{font-size:42px} h2{font-size:29px}
+}
+</style>
+</head>
+<body>
+<div id="deck">
+<section class="slide dark active">
+  <div class="hero">
+    <div>
+      <div class="kicker">Election Intelligence • Historical Analytics • Interactive HTML Deck</div>
+      <h1>Atiku Abubakar: Presidential Electoral Performance in Nigeria, 2007–2023</h1>
+      <p class="lead">An upgraded, state-by-state historical analysis of Atiku’s presidential candidacies, party platforms, opponents, geographical strength, and the special 2015 political-influence context.</p>
+      <div class="metric-ribbon">
+        <div class="ribbon-card"><div class="stat">25</div><div class="label">Slides</div></div>
+        <div class="ribbon-card"><div class="stat">3</div><div class="label">General-election candidacies</div></div>
+        <div class="ribbon-card"><div class="stat">36 + FCT</div><div class="label">Map focus</div></div>
+        <div class="ribbon-card"><div class="stat">2015</div><div class="label">Influence context tracked separately</div></div>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <img src="https://commons.wikimedia.org/wiki/Special:FilePath/Atiku%20Abubakar-2010%20(cropped).jpg" alt="Atiku Abubakar portrait">
+      <div class="hero-caption">
+        <div class="badge cand">Featured subject</div>
+        <div style="font-size:28px;font-weight:900;margin-top:8px">Atiku Abubakar</div>
+        <div class="small" style="color:#d7e4ef">2007 AC • 2019 PDP • 2023 PDP</div>
+      </div>
+    </div>
+  </div>
+  <div class="source">Enhanced version prepared after your review request, preserving and upgrading the “Atiku Electoral Intelligence Map” concept you highlighted.</div>
+</section>
+
+<section class="slide">
+  <div class="kicker">Purpose and questions</div>
+  <h2>What this deck is built to answer</h2>
+  <div class="grid g2">
+    <div class="card icon-card"><div class="icon-badge">📈</div><div><h3>Electoral trajectory</h3><p>How did Atiku’s national votes, vote share, party platform and position change from 2007 to 2023?</p></div></div>
+    <div class="card icon-card"><div class="icon-badge">🗺️</div><div><h3>Geographical support</h3><p>Where was he strongest, weakest, growing or declining across Nigeria’s states and geopolitical zones?</p></div></div>
+    <div class="card icon-card"><div class="icon-badge">⚔️</div><div><h3>Competitive environment</h3><p>Which candidates did he face in each cycle, where did he defeat the eventual national winner, and how did third-party competition reshape the field?</p></div></div>
+    <div class="card icon-card"><div class="icon-badge">🏛️</div><div><h3>2015 context</h3><p>What can be documented about Atiku’s influence after the APC primary, and what cannot be isolated from official result tables?</p></div></div>
+  </div>
+  <div class="callout warn"><strong>Working rule:</strong> party membership, party primary participation and presidential general-election candidacy are treated as separate political facts.</div>
+</section>
+
+<section class="slide">
+  <div class="kicker">Party identities</div>
+  <h2>Parties, logos and colour codes used in this presentation</h2>
+  <div class="party-grid">
+    <div class="party-card"><div class="logo-wrap"><img class="logo" src="https://en.wikipedia.org/wiki/Special:FilePath/Logo%20of%20the%20Peoples%20Democratic%20Party%20(Nigeria).png" alt="PDP logo"></div><h3>Peoples Democratic Party (PDP)</h3><div class="colors"><span class="color-box" style="background:#d94841"></span><span class="color-box" style="background:#1f8e4d"></span><span class="color-box" style="background:#ffffff"></span></div><p class="small">Primary deck use: Atiku 2011 primary context, 2019 candidacy, 2023 candidacy.</p></div>
+    <div class="party-card"><div class="logo-wrap"><img class="logo" src="https://en.wikipedia.org/wiki/Special:FilePath/All%20Progressives%20Congress%20logo.png" alt="APC logo"></div><h3>All Progressives Congress (APC)</h3><div class="colors"><span class="color-box" style="background:#2f9e44"></span><span class="color-box" style="background:#e44f4f"></span><span class="color-box" style="background:#6ec1e4"></span></div><p class="small">Primary deck use: 2015 APC primary context, Buhari 2015 & 2019, Tinubu 2023.</p></div>
+    <div class="party-card"><div class="logo-wrap"><img class="logo" src="https://en.wikipedia.org/wiki/Special:FilePath/Labour%20Party%20(Nigeria)%20logo.png" alt="Labour Party logo"></div><h3>Labour Party (LP)</h3><div class="colors"><span class="color-box" style="background:#d63a38"></span><span class="color-box" style="background:#1f8e4d"></span><span class="color-box" style="background:#ffffff"></span></div><p class="small">Primary deck use: Peter Obi’s 2023 candidacy and south-eastern competitive impact.</p></div>
+    <div class="party-card"><div class="logo-wrap"><img class="logo" src="https://en.wikipedia.org/wiki/Special:FilePath/Logo%20of%20the%20New%20Nigeria%20People%27s%20Party.png" alt="NNPP logo"></div><h3>New Nigeria People’s Party (NNPP)</h3><div class="colors"><span class="color-box" style="background:#2850a3"></span><span class="color-box" style="background:#1f8e4d"></span><span class="color-box" style="background:#ffffff"></span></div><p class="small">Primary deck use: Rabiu Kwankwaso’s 2023 candidacy, especially Kano.</p></div>
+  </div>
+  <div class="source">Official party websites display party logos and identity pages: APC, PDP, Labour Party and NNPP official portals. Candidate-specific use of party colours in the charts follows the same coding.</div>
+</section>
+
+<section class="slide">
+  <div class="kicker">Timeline</div>
+  <h2>Atiku’s presidential pathway, 2007–2023</h2>
+  <div class="timeline">
+    <div class="tl"><div class="yr">2007</div><span class="badge cand">On ballot</span><p><strong>Action Congress (AC)</strong><br>Presidential candidate • Ben Obi running mate • finished 3rd nationally.</p></div>
+    <div class="tl"><div class="yr">2011</div><span class="badge noballot">Not on ballot</span><p><strong>PDP</strong><br>Contested the PDP primary; lost to Goodluck Jonathan.</p></div>
+    <div class="tl"><div class="yr">2015</div><span class="badge noballot">Not on ballot</span><p><strong>APC</strong><br>Contested the APC primary; lost to Muhammadu Buhari; later supported Buhari/APC.</p></div>
+    <div class="tl"><div class="yr">2019</div><span class="badge cand">On ballot</span><p><strong>PDP</strong><br>Presidential candidate • Peter Obi running mate • finished 2nd nationally.</p></div>
+    <div class="tl"><div class="yr">2023</div><span class="badge cand">On ballot</span><p><strong>PDP</strong><br>Presidential candidate • Ifeanyi Okowa running mate • finished 2nd nationally.</p></div>
+  </div>
+  <div class="winner-strip">
+    <div class="winner-mini"><div class="pic"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Umaru%20Musa%20Yaradua%20GCFR.jpg" alt="Yar'Adua"></div><div class="bd"><div class="small"><strong>2007 winner</strong><br>Umaru Musa Yar’Adua • PDP</div></div></div>
+    <div class="winner-mini"><div class="pic"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Goodluck%20Jonathan%20official%20portrait.jpg" alt="Goodluck Jonathan"></div><div class="bd"><div class="small"><strong>2011 winner</strong><br>Goodluck Jonathan • PDP</div></div></div>
+    <div class="winner-mini"><div class="pic"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Muhammadu%20Buhari,%20President%20of%20the%20Federal%20Republic%20of%20Nigeria%20(cropped).jpg" alt="Muhammadu Buhari"></div><div class="bd"><div class="small"><strong>2015 winner</strong><br>Muhammadu Buhari • APC</div></div></div>
+    <div class="winner-mini"><div class="pic"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Muhammadu%20Buhari,%20President%20of%20the%20Federal%20Republic%20of%20Nigeria%20(cropped).jpg" alt="Muhammadu Buhari"></div><div class="bd"><div class="small"><strong>2019 winner</strong><br>Muhammadu Buhari • APC</div></div></div>
+    <div class="winner-mini"><div class="pic"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Bola%20Tinubu%20portrait%20(cropped).jpg" alt="Bola Ahmed Tinubu"></div><div class="bd"><div class="small"><strong>2023 winner</strong><br>Bola Ahmed Tinubu • APC</div></div></div>
+  </div>
+</section>
+
+<section class="slide">
+  <div class="kicker">National summary</div>
+  <h2>Three general-election candidacies, three very different competitive environments</h2>
+  <div class="twocol">
+    <div>
+      <table class="compact-table">
+        <thead><tr><th>Year</th><th>Party</th><th>Atiku votes</th><th>Share</th><th>Position</th><th>Winner</th></tr></thead>
+        <tbody>
+          <tr><td>2007</td><td>AC</td><td>2,567,798*</td><td>≈7.25%*</td><td>3rd</td><td>Umaru Musa Yar’Adua (PDP)</td></tr>
+          <tr><td>2019</td><td>PDP</td><td>11,262,978</td><td>39.14%</td><td>2nd</td><td>Muhammadu Buhari (APC)</td></tr>
+          <tr><td>2023</td><td>PDP</td><td>6,984,520</td><td>29.07%</td><td>2nd</td><td>Bola Ahmed Tinubu (APC)</td></tr>
+        </tbody>
+      </table>
+      <div class="callout warn"><strong>2007 note:</strong> the later published INEC tally differs from the figures initially announced publicly by the chairman. This deck preserves that caveat.</div>
+    </div>
+    <div class="chartbox"><canvas id="nationalVotesChart"></canvas></div>
+  </div>
+</section>
+
+<section class="slide">
+  <div class="kicker">Party switching and status</div>
+  <h2>Atiku’s party identity must be read together with ballot status</h2>
+  <div class="grid g4">
+    <div class="card"><div class="stat">AC</div><div class="label">2007 general-election party</div></div>
+    <div class="card"><div class="stat">PDP</div><div class="label">2011 primary context</div></div>
+    <div class="card"><div class="stat">APC</div><div class="label">2015 primary context</div></div>
+    <div class="card"><div class="stat">PDP</div><div class="label">2019 & 2023 general-election party</div></div>
+  </div>
+  <div class="logo-line">
+    <div class="logo-pill"><img src="https://upload.wikimedia.org/wikipedia/en/thumb/d/df/Action_Congress_logo.svg/1200px-Action_Congress_logo.svg.png" alt="AC logo"><span><strong>Action Congress</strong><br><span class="small">2007 ballot platform</span></span></div>
+    <div class="logo-pill"><img src="https://en.wikipedia.org/wiki/Special:FilePath/Logo%20of%20the%20Peoples%20Democratic%20Party%20(Nigeria).png" alt="PDP logo"><span><strong>PDP</strong><br><span class="small">2011, 2019, 2023 context</span></span></div>
+    <div class="logo-pill"><img src="https://en.wikipedia.org/wiki/Special:FilePath/All%20Progressives%20Congress%20logo.png" alt="APC logo"><span><strong>APC</strong><br><span class="small">2015 primary context</span></span></div>
+  </div>
+  <div class="quote" style="margin-top:24px">The analytical point is not only <em>how many votes</em> Atiku received, but also <em>under which party banner, against which field, and in what type of contest</em>.</div>
+</section>
+
+<section class="slide">
+  <div class="kicker">2007 election</div>
+  <h2>2007: First presidential general-election bid under Action Congress</h2>
+  <div class="grid g4">
+    <div class="card"><div class="stat">2.57m</div><div class="label">Atiku votes*</div></div>
+    <div class="card"><div class="stat">≈7.25%</div><div class="label">Atiku share*</div></div>
+    <div class="card"><div class="stat">3rd</div><div class="label">National rank</div></div>
+    <div class="card"><div class="stat">Ben Obi</div><div class="label">Running mate</div></div>
+  </div>
+  <div class="podium">
+    <div class="candidate"><div class="ph"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Umaru%20Musa%20Yaradua%20GCFR.jpg" alt="Umaru Musa Yar'Adua"></div><div class="bd"><div class="name">Umaru Musa Yar’Adua</div><div class="small">Winner • PDP</div><div class="tag PDP" style="background:#d94841">24.78m*</div></div></div>
+    <div class="candidate"><div class="ph"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Muhammadu%20Buhari,%20President%20of%20the%20Federal%20Republic%20of%20Nigeria%20(cropped).jpg" alt="Muhammadu Buhari"></div><div class="bd"><div class="name">Muhammadu Buhari</div><div class="small">Runner-up • ANPP</div><div class="tag OTH">6.61m*</div></div></div>
+    <div class="candidate"><div class="ph"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Atiku%20Abubakar-2010%20(cropped).jpg" alt="Atiku Abubakar"></div><div class="bd"><div class="name">Atiku Abubakar</div><div class="small">3rd place • AC</div><div class="tag AC">2.57m*</div></div></div>
+  </div>
+  <div class="callout danger"><strong>Limitation:</strong> INEC did not publish a dependable official state-by-state presidential breakdown for 2007. The upgraded map still refuses to fabricate state numbers.</div>
+</section>
+
+<section class="slide">
+  <div class="kicker">2011 context</div>
+  <h2>2011: Primary contender, not general-election presidential candidate</h2>
+  <div class="grid g3">
+    <div class="card"><div class="stat">805</div><div class="label">Atiku PDP primary votes</div></div>
+    <div class="card"><div class="stat">2,736</div><div class="label">Jonathan PDP primary votes</div></div>
+    <div class="card"><div class="stat">Not on ballot</div><div class="label">General election status</div></div>
+  </div>
+  <div class="callout"><strong>Interpretive guardrail:</strong> it is incorrect to assign Atiku a 2011 presidential general-election vote total because he was not the PDP nominee and did not appear on the ballot.</div>
+</section>
+
+<section class="slide">
+  <div class="kicker">2015 context</div>
+  <h2>2015 — Atiku was not on the ballot, but was politically relevant</h2>
+  <div class="grid g4">
+    <div class="card"><div class="stat">954</div><div class="label">Atiku APC primary votes</div></div>
+    <div class="card"><div class="stat">3,430</div><div class="label">Buhari APC primary votes</div></div>
+    <div class="card"><div class="stat">APC</div><div class="label">Atiku party</div></div>
+    <div class="card"><div class="stat">Not on ballot</div><div class="label">General election status</div></div>
+  </div>
+  <div class="evidence" style="margin-top:16px">
+    <div class="ev fact"><h3>Verified fact</h3><p>Atiku sought the APC nomination, lost to Buhari and remained within the APC coalition.</p></div>
+    <div class="ev activity"><h3>Documented activity</h3><p>He publicly accepted the result and supported Buhari/APC, contributing politically to the broader coalition effort.</p></div>
+    <div class="ev interp"><h3>Analytical boundary</h3><p>Official election returns cannot isolate how many votes were personally attributable to Atiku’s support.</p></div>
+  </div>
+</section>
+
+<section class="slide">
+  <div class="kicker">Candidate gallery</div>
+  <h2>Major personalities across the full historical sequence</h2>
+  <div class="photo-grid">
+    <div class="candidate"><div class="ph"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Atiku%20Abubakar-2010%20(cropped).jpg" alt="Atiku Abubakar"></div><div class="bd"><div class="name">Atiku Abubakar</div><div class="sub">Main subject • 2007, 2019, 2023</div><div class="chip PDP">AC / PDP / APC contexts</div></div></div>
+    <div class="candidate"><div class="ph"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Umaru%20Musa%20Yaradua%20GCFR.jpg" alt="Umaru Musa Yar'Adua"></div><div class="bd"><div class="name">Umaru Musa Yar’Adua</div><div class="sub">2007 national winner</div><div class="chip PDP">PDP</div></div></div>
+    <div class="candidate"><div class="ph"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Goodluck%20Jonathan%20official%20portrait.jpg" alt="Goodluck Jonathan"></div><div class="bd"><div class="name">Goodluck Jonathan</div><div class="sub">2011 winner; 2015 major opponent</div><div class="chip PDP">PDP</div></div></div>
+    <div class="candidate"><div class="ph"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Muhammadu%20Buhari,%20President%20of%20the%20Federal%20Republic%20of%20Nigeria%20(cropped).jpg" alt="Muhammadu Buhari"></div><div class="bd"><div class="name">Muhammadu Buhari</div><div class="sub">2007 runner-up; 2015 and 2019 winner</div><div class="chip APC">APC / ANPP context</div></div></div>
+    <div class="candidate"><div class="ph"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Bola%20Tinubu%20portrait%20(cropped).jpg" alt="Bola Tinubu"></div><div class="bd"><div class="name">Bola Ahmed Tinubu</div><div class="sub">2023 national winner</div><div class="chip APC">APC</div></div></div>
+    <div class="candidate"><div class="ph"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Peter%20Obi%202022.jpg" alt="Peter Obi"></div><div class="bd"><div class="name">Peter Obi</div><div class="sub">Atiku running mate in 2019; major rival in 2023</div><div class="chip LP">LP / PDP context</div></div></div>
+    <div class="candidate"><div class="ph"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Rabiu%20Kwankwaso.jpg" alt="Rabiu Kwankwaso"></div><div class="bd"><div class="name">Rabiu Musa Kwankwaso</div><div class="sub">2023 major competitor</div><div class="chip NNPP">NNPP</div></div></div>
+  </div>
+  <div class="callout" style="margin-top:14px"><strong>Update made from your feedback:</strong> this gallery now covers not only the 2023 candidates but also key personalities from 2007, 2011 and 2015 context.</div>
+</section>
+
+<section class="slide">
+  <div class="kicker">2019 election</div>
+  <h2>2019: Atiku’s strongest national general-election performance</h2>
+  <div class="grid g4">
+    <div class="card"><div class="stat">11.26m</div><div class="label">Atiku votes</div></div>
+    <div class="card"><div class="stat">39.14%</div><div class="label">National share</div></div>
+    <div class="card"><div class="stat">2nd</div><div class="label">National rank</div></div>
+    <div class="card"><div class="stat">Peter Obi</div><div class="label">Running mate</div></div>
+  </div>
+  <div class="twocol" style="margin-top:16px">
+    <div class="chartbox"><canvas id="chart2019"></canvas></div>
+    <div class="card"><h3>Interpretive note</h3><p>2019 was fundamentally a two-candidate national contest between incumbent Muhammadu Buhari (APC) and Atiku Abubakar (PDP). That structure helps explain why Atiku’s total and national share rose substantially relative to 2007.</p><hr class="sep"><p class="small">The interactive map computes Atiku’s best states, weakest states, and zone pattern directly from the loaded state data.</p></div>
+  </div>
+</section>
+
+<section class="slide">
+  <div class="kicker">2023 election</div>
+  <h2>2023: A fragmented four-way field reshaped Atiku’s map</h2>
+  <div class="grid g4">
+    <div class="card"><div class="stat">6.98m</div><div class="label">Atiku votes</div></div>
+    <div class="card"><div class="stat">29.07%</div><div class="label">Atiku share</div></div>
+    <div class="card"><div class="stat">12</div><div class="label">States carried</div></div>
+    <div class="card"><div class="stat">Ifeanyi Okowa</div><div class="label">Running mate</div></div>
+  </div>
+  <div class="twocol" style="margin-top:16px">
+    <div class="chartbox"><canvas id="chart2023"></canvas></div>
+    <div class="card"><h3>Competitive disruption</h3><p>Peter Obi’s Labour Party was especially disruptive in the South-East and in Lagos, while Rabiu Kwankwaso’s NNPP transformed the contest in Kano. Atiku remained second nationally but lost vote share compared with 2019.</p></div>
+  </div>
+</section>
+
+<section class="slide">
+  <div class="kicker">Longitudinal trend</div>
+  <h2>The overall arc: third in 2007, stronger second in 2019, weaker second in 2023</h2>
+  <div class="chartbox" style="height:390px"><canvas id="trendChart"></canvas></div>
+  <div class="callout warn"><strong>Analytical caution:</strong> vote change is not pure “personal popularity.” It also reflects turnout, party strength, regional alignments and the number of competitive rivals.</div>
+</section>
+
+<section class="slide">
+  <div class="kicker">Electoral intelligence map</div>
+  <h2>Atiku Electoral Intelligence Map — improved interactive state analysis</h2>
+  <div class="controls" id="yearControls">
+    <button class="pill active" data-year="2023">2023</button>
+    <button class="pill" data-year="2019">2019</button>
+    <button class="pill" data-year="2015">2015 context</button>
+    <button class="pill" data-year="2011">2011 context</button>
+    <button class="pill" data-year="2007">2007</button>
+  </div>
+  <div class="controls" id="modeControls">
+    <button class="pill active" data-mode="share">Atiku Vote Share</button>
+    <button class="pill" data-mode="winner">State Winner</button>
+    <button class="pill" data-mode="rank">Atiku Rank</button>
+    <button class="pill" data-mode="margin">Winning/Losing Margin</button>
+    <button class="pill" data-mode="zone">Geopolitical Zone</button>
+  </div>
+  <div id="dataStatus" class="small" style="margin:0 0 10px">Loading state data, higher-fidelity Nigeria geometry and supplementary map assets…</div>
+  <div class="maphud">
+    <div class="hud"><div class="label">Selected year</div><div class="big" id="hudYear">2023</div></div>
+    <div class="hud"><div class="label">Available state rows</div><div class="big" id="hudStateRows">—</div></div>
+    <div class="hud"><div class="label">Display mode</div><div class="big" id="hudMode">Share</div></div>
+    <div class="hud"><div class="label">Map status</div><div class="big" id="hudMapStatus">Loading</div></div>
+  </div>
+  <div class="map-wrap">
+    <div class="map-card">
+      <div class="map-actions">
+        <button class="map-btn" id="zoomReset">Reset</button>
+      </div>
+      <svg id="ngMap" viewBox="0 0 780 540" preserveAspectRatio="xMidYMid meet"></svg>
+      <div class="legend" id="legend"></div>
+    </div>
+    <div class="state-panel" id="statePanel"><h3>Select a state</h3><p class="note">Hover for a quick summary, click for detail and historical comparison. The panel also shows a mini comparison plot for 2019 and 2023 where available.</p></div>
+  </div>
+</section>
+
+<section class="slide">
+  <div class="kicker">Rankings</div>
+  <h2>Strongest and weakest states</h2>
+  <div class="controls"><button class="pill rankyear active" data-rankyear="2023">2023</button><button class="pill rankyear" data-rankyear="2019">2019</button></div>
+  <div class="ranking">
+    <div class="rankbox"><h3>Top 10 by Atiku share</h3><ol id="topShare"><li>Loading…</li></ol></div>
+    <div class="rankbox"><h3>Top 10 by Atiku votes</h3><ol id="topVotes"><li>Loading…</li></ol></div>
+    <div class="rankbox"><h3>Weakest 10 by share</h3><ol id="weakShare"><li>Loading…</li></ol></div>
+    <div class="rankbox"><h3>States carried by Atiku</h3><ol id="wonStates"><li>Loading…</li></ol></div>
+  </div>
+</section>
+
+<section class="slide">
+  <div class="kicker">Zones</div>
+  <h2>Geopolitical zone comparison</h2>
+  <div class="chartbox" style="height:420px"><canvas id="zoneChart"></canvas></div>
+  <div class="callout">This plot expresses Atiku/PDP’s share of the loaded-party total in each zone for the selected comparison year. Use it to compare regional concentration, not to infer individual-level behaviour.</div>
+</section>
+
+<section class="slide">
+  <div class="kicker">Competitive geography</div>
+  <h2>Where Atiku beat the eventual national winner</h2>
+  <div class="grid g2">
+    <div class="card"><h3>2019</h3><p>Atiku carried a notable bloc of states despite Buhari’s national victory. His strength was especially visible in the South-East, South-South and parts of the North-East and North-Central.</p></div>
+    <div class="card"><h3>2023</h3><p>Atiku won 12 states even though Tinubu won nationally. That pattern underscores the difference between state-level competitiveness and winning the presidency.</p></div>
+  </div>
+  <div class="callout warn"><strong>Strategic implication:</strong> defeating the eventual national winner in multiple states proves real competitiveness, but a presidency still requires a larger national coalition and spread.</div>
+</section>
+
+<section class="slide">
+  <div class="kicker">Fragmentation</div>
+  <h2>2023 created more places where Atiku was no longer in a simple two-way race</h2>
+  <div class="grid g3">
+    <div class="card"><h3>South-East</h3><p>Peter Obi’s dominance changed the electoral map and reduced Atiku’s room for coalition consolidation there.</p></div>
+    <div class="card"><h3>Kano</h3><p>Kwankwaso’s dominance under NNPP changed the arithmetic in one of Nigeria’s most important states.</p></div>
+    <div class="card"><h3>National consequence</h3><p>Atiku stayed second overall, but in a far more fragmented contest than the one he faced in 2019.</p></div>
+  </div>
+</section>
+
+<section class="slide">
+  <div class="kicker">Map change over time</div>
+  <h2>How Atiku’s competitive map changed over time</h2>
+  <div class="grid g3">
+    <div class="card"><h3>2007</h3><p>Third nationally under AC; state-level geographic reconstruction is limited by the absence of an authoritative INEC state table.</p></div>
+    <div class="card"><h3>2019</h3><p>Best overall national performance under PDP in a predominantly two-candidate field.</p></div>
+    <div class="card"><h3>2023</h3><p>Lower national share under PDP in a four-way field that split several natural opposition blocs.</p></div>
+  </div>
+</section>
+
+<section class="slide">
+  <div class="kicker">Core challenge</div>
+  <h2>The biggest recurring challenge: converting broad presence into a winning national coalition</h2>
+  <div class="evidence">
+    <div class="ev fact"><h3>Fact</h3><p>Atiku was third in 2007, second in 2019 and second in 2023. He never led the national vote in the three presidential elections he contested.</p></div>
+    <div class="ev activity"><h3>Observed pattern</h3><p>His support has often been regionally meaningful and sometimes expansive, but it has not aligned into a sufficiently large national victory coalition.</p></div>
+    <div class="ev interp"><h3>Interpretation</h3><p>The challenge is less the absence of support than the difficulty of maximizing vote concentration and geographic spread simultaneously in changing multi-party environments.</p></div>
+  </div>
+</section>
+
+<section class="slide">
+  <div class="kicker">2015 analytical conclusion</div>
+  <h2>What can safely be said about Atiku’s influence in 2015?</h2>
+  <div class="grid g3">
+    <div class="card"><h3>Known</h3><p>He ran in the APC primary, lost to Buhari, and publicly supported the APC ticket afterwards.</p></div>
+    <div class="card"><h3>Documented</h3><p>His relevance inside the APC coalition and his home-state visibility make 2015 politically significant in his timeline.</p></div>
+    <div class="card"><h3>Not measurable from returns alone</h3><p>No official result table can quantify an exact number of Buhari votes personally “delivered” by Atiku.</p></div>
+  </div>
+</section>
+
+<section class="slide">
+  <div class="kicker">Key findings</div>
+  <h2>Most important historical takeaways</h2>
+  <div class="grid g2">
+    <div class="card"><h3>2019 was the high-water mark</h3><p>It was Atiku’s best national vote total and best published national percentage.</p></div>
+    <div class="card"><h3>2023 was structurally different</h3><p>LP and NNPP created a fragmented field that changed Atiku’s relative standing in multiple states.</p></div>
+    <div class="card"><h3>Party context matters</h3><p>AC in 2007, PDP in 2019/2023 and APC context in 2015 are not analytically interchangeable.</p></div>
+    <div class="card"><h3>Data quality matters too</h3><p>It is better to mark 2007 state data unavailable than to fabricate state-level certainty that the official record does not support.</p></div>
+  </div>
+</section>
+
+<section class="slide">
+  <div class="kicker">Winning pathway</div>
+  <h2>What Atiku needs to do to win a future presidential election</h2>
+  <div class="grid g2">
+    <div class="card"><h3>1. Rebuild a broad coalition, not just a base</h3><p>Historical evidence suggests that Atiku already has meaningful strength in parts of the North-East, North-West and South-South. Winning requires preserving those strongholds while expanding beyond them into competitive North-Central, South-South, South-West and selected urban states.</p></div>
+    <div class="card"><h3>2. Reduce opposition fragmentation</h3><p>The 2023 map shows how opposition fragmentation hurt him. Any path to victory becomes easier if he can cooperate, negotiate or avoid destructive vote-splitting with other major opposition forces in Peter Obi-leaning and Kwankwaso-leaning zones.</p></div>
+    <div class="card"><h3>3. Lead with a clear national message</h3><p>The winning message should focus on economy, cost of living, jobs, security, unity and competent federal management. It must sound national rather than sectional and should be tailored by region without becoming contradictory.</p></div>
+    <div class="card"><h3>4. Build a state-by-state execution machine</h3><p>Strong candidate recognition is not enough. He needs a superior ground operation: coalition brokers, polling-unit presence, data-led mobilisation, fast dispute response, and strong turnout conversion in friendly states.</p></div>
+  </div>
+</section>
+
+<section class="slide">
+  <div class="kicker">State segmentation</div>
+  <h2>Indicative state classification for a future Atiku pathway</h2>
+  <div class="callout warn"><strong>Important:</strong> this is a strategic classification derived from historical 2019 and 2023 patterns plus broader political context. It is not a prediction or an official forecast.</div>
+  <div class="grid g3">
+    <div class="card"><h3>Low-stress win states<br><span class="small">Core hold / defend first</span></h3><p><strong>Adamawa, Bauchi, Gombe, Taraba, Sokoto, Zamfara, Akwa Ibom, Bayelsa</strong></p><p class="note">These are the states where Atiku/PDP history suggests a relatively stronger natural base or recurring competitiveness. The priority is protection, turnout maximisation and margin expansion.</p></div>
+    <div class="card"><h3>Win-with-struggle states<br><span class="small">Real battlegrounds</span></h3><p><strong>Kaduna, Katsina, Kebbi, Plateau, Benue, Nasarawa, Kogi, Niger, Kwara, Delta, Rivers, Edo, Cross River, Osun, Oyo, Ogun, FCT</strong></p><p class="note">These states require serious fieldwork, elite coalition-building, local grievance targeting and stronger voter-conversion strategy. This is where the national election can be won or lost.</p></div>
+    <div class="card"><h3>Spread-first states<br><span class="small">Do not overinvest in winning; target 25%+</span></h3><p><strong>Anambra, Abia, Enugu, Imo, Ebonyi, Kano, Lagos, Ondo, Ekiti</strong></p><p class="note">These states have recent evidence of strong alternative anchors — Obi-heavy South-East, Kano under NNPP, and difficult APC/Obi terrain in parts of the South-West. The strategic minimum is to secure respectable vote shares and constitutional spread.</p></div>
+  </div>
+</section>
+
+<section class="slide">
+  <div class="kicker">How to work the map</div>
+  <h2>What Atiku should do in each state category</h2>
+  <div class="grid g3">
+    <div class="card"><h3>Core hold states</h3><ul class="method"><li>Protect incumbency-style structures and trusted local allies.</li><li>Maximise turnout, not just victory.</li><li>Resolve local party disputes early.</li><li>Use these states to create psychological momentum and large raw-vote buffers.</li></ul></div>
+    <div class="card"><h3>Battleground states</h3><ul class="method"><li>Invest candidate time heavily here.</li><li>Run micro-messaging around jobs, insecurity, food prices and inclusion.</li><li>Recruit strong local validators, governors, former governors and community leaders.</li><li>Build ward and polling-unit operations earlier than rivals.</li></ul></div>
+    <div class="card"><h3>Spread-first states</h3><ul class="method"><li>Do not burn disproportionate resources chasing first place where structural odds are poor.</li><li>Focus on coalition pockets: urban professionals, minorities, youth, Christian blocs, and anti-incumbent voters.</li><li>Design a specific 25% constitutional-spread plan for each such state.</li><li>Use surrogate campaigns, not only principal-candidate visits.</li></ul></div>
+  </div>
+  <div class="callout"><strong>Bottom line:</strong> Atiku’s route to victory is not simply “win more states”; it is <strong>bank large margins in core states, flip enough battleground states, and secure 25%+ in difficult spread states</strong>.</div>
+</section>
+
+<section class="slide">
+  <div class="kicker">Strategic conclusion</div>
+  <h2>The shortest summary of a winning Atiku formula</h2>
+  <div class="quote">Hold the North-East and friendly South-South states, compete harder in North-Central and mixed North-West/South-West battlegrounds, reduce opposition fragmentation, and pursue constitutional spread deliberately in difficult states rather than emotionally.</div>
+  <div class="row" style="margin-top:18px">
+    <div class="card"><h3>Core electoral logic</h3><p><strong>Defend base → win battlegrounds → secure spread.</strong></p></div>
+    <div class="card"><h3>Operational logic</h3><p><strong>Message + coalition + ground game + turnout conversion.</strong></p></div>
+    <div class="card"><h3>Strategic risk</h3><p><strong>Another fragmented opposition field could again block a national win.</strong></p></div>
+  </div>
+</section>
+
+<section class="slide">
+  <div class="kicker">Method and limitations</div>
+  <h2>Methodology and data-quality notes</h2>
+  <ul class="method">
+    <li>2023 national totals are based on INEC’s published 2023 General Election Report, with state-level results loaded from structured open compilations derived from declared results.</li>
+    <li>2019 national totals are based on the INEC declaration PDF, with state-level data loaded from a historical CSV whose APC/PDP totals align to the national two-party totals.</li>
+    <li>2015 is used for <strong>context</strong>, not Atiku ballot performance. The interactive panel shows Buhari/Jonathan state context and the analytical evidence warning.</li>
+    <li>2011 is included as PDP primary context only.</li>
+    <li>2007 remains nationally analysable but state-level presidential mapping is not forced because the authoritative INEC state table is unavailable.</li>
+  </ul>
+</section>
+
+<section class="slide dark">
+  <div class="kicker">Sources</div>
+  <h2>Principal source family</h2>
+  <div class="grid g2">
+    <div class="card"><h3>Electoral data</h3><p>INEC 2019 presidential declaration</p><p>INEC 2023 General Election Report, Annexure 2</p><p>INEC 2015 presidential result tables</p><p>Observer/IRI reproduction of 2007 national presidential tally</p></div>
+    <div class="card"><h3>Context and assets</h3><p>APC, PDP, Labour Party and NNPP official sites for party identity</p><p>Peter Obi press/official media pages and public licensed image sources</p><p>State House / FMINO portraits for Tinubu and Buhari</p><p>Open-source Nigeria state geometry for the interactive map</p></div>
+  </div>
+</section>
+
+<section class="slide dark">
+  <div class="kicker">End</div>
+  <h1>Historical accuracy first. Strategic interpretation second.</h1>
+  <p class="lead">Use the improved map to inspect year-by-year context, candidate competition, state ranking and regional concentration.</p>
+  <p class="small">Keyboard: ← / → to navigate • Space next • Home / End • F fullscreen</p>
+</section>
+</div>
+
+<div class="tooltip" id="tooltip"></div>
+<div class="nav"><button id="prev">‹</button><div class="count" id="count"></div><button id="next">›</button><button id="full">⛶</button></div>
+<div class="progress" id="progress"></div>
+<script>
+const slides=[...document.querySelectorAll('.slide')]; let cur=0;
+function show(i){cur=Math.max(0,Math.min(slides.length-1,i));slides.forEach((s,j)=>s.classList.toggle('active',j===cur));document.getElementById('count').textContent=`${cur+1} / ${slides.length}`;document.getElementById('progress').style.width=((cur+1)/slides.length*100)+'%';}
+document.getElementById('prev').onclick=()=>show(cur-1); document.getElementById('next').onclick=()=>show(cur+1); document.getElementById('full').onclick=()=>document.documentElement.requestFullscreen?.();
+document.addEventListener('keydown',e=>{if(e.key==='ArrowRight'||e.key===' '){e.preventDefault();show(cur+1)} if(e.key==='ArrowLeft')show(cur-1); if(e.key==='Home')show(0); if(e.key==='End')show(slides.length-1); if(e.key.toLowerCase()==='f')document.documentElement.requestFullscreen?.();});
+show(0);
+
+const charts={};
+function makeCharts(){
+ charts.nv=new Chart(document.getElementById('nationalVotesChart'),{type:'bar',data:{labels:['2007','2019','2023'],datasets:[{label:'Atiku votes (millions)',data:[2.567798,11.262978,6.984520],backgroundColor:['#e2a11b','#d94841','#d94841']}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,title:{display:true,text:'Votes (millions)'}}}}});
+ charts.y2019=new Chart(document.getElementById('chart2019'),{type:'bar',data:{labels:['Buhari (APC)','Atiku (PDP)'],datasets:[{label:'Votes',data:[15191847,11262978]}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}});
+ charts.y2023=new Chart(document.getElementById('chart2023'),{type:'bar',data:{labels:['Tinubu (APC)','Atiku (PDP)','Obi (LP)','Kwankwaso (NNPP)'],datasets:[{label:'Votes',data:[8794726,6984520,6101533,1496687]}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}});
+ charts.trend=new Chart(document.getElementById('trendChart'),{type:'line',data:{labels:['2007','2019','2023'],datasets:[{label:'Atiku vote share (%)',data:[7.25,39.14,29.07],borderWidth:4,tension:.25,pointRadius:6},{label:'Atiku votes (millions)',data:[2.567798,11.262978,6.984520],borderWidth:3,tension:.25,pointRadius:5}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom'}},scales:{y:{beginAtZero:true}}}});
+}
+makeCharts();
+
+const ZONES={
+ 'Abia':'South-East','Anambra':'South-East','Ebonyi':'South-East','Enugu':'South-East','Imo':'South-East',
+ 'Akwa Ibom':'South-South','Bayelsa':'South-South','Cross River':'South-South','Delta':'South-South','Edo':'South-South','Rivers':'South-South',
+ 'Ekiti':'South-West','Lagos':'South-West','Ogun':'South-West','Ondo':'South-West','Osun':'South-West','Oyo':'South-West',
+ 'Adamawa':'North-East','Bauchi':'North-East','Borno':'North-East','Gombe':'North-East','Taraba':'North-East','Yobe':'North-East',
+ 'Benue':'North-Central','FCT':'North-Central','Kogi':'North-Central','Kwara':'North-Central','Nasarawa':'North-Central','Niger':'North-Central','Plateau':'North-Central',
+ 'Jigawa':'North-West','Kaduna':'North-West','Kano':'North-West','Katsina':'North-West','Kebbi':'North-West','Sokoto':'North-West','Zamfara':'North-West'
+};
+const partyColors={APC:'#2f9e44',PDP:'#d94841',LP:'#8e2bb9',NNPP:'#2850a3',OTHER:'#94a3b8'};
+const zoneColors={'North-West':'#4657a3','North-East':'#2c7a7b','North-Central':'#8b5e34','South-West':'#ad5a87','South-East':'#7b61a8','South-South':'#2b7bb9'};
+const stateData={2015:{},2019:{},2023:{}};
+let geoFeatures=[],currentYear='2023',currentMode='share',selectedState=null,zoomBehavior,mapG,projection,path;
+
+function normName(s){if(!s)return '';s=String(s).replace(/ State$/i,'').trim();const u=s.toUpperCase().replace(/[^A-Z]/g,'');const map={'FEDERALCAPITALTERRITORY':'FCT','FEDERALCAPITALTERRITORYABUJA':'FCT','ABUJA':'FCT','NASSARAWA':'Nasarawa','AKWAIBOM':'Akwa Ibom','CROSSRIVER':'Cross River'}; if(map[u]) return map[u]; return s.toLowerCase().replace(/\b\w/g,c=>c.toUpperCase())}
+function csvParse(txt){const lines=txt.trim().split(/\r?\n/); const heads=lines[0].split(',').map(x=>x.trim().replace(/^"|"$/g,'')); return lines.slice(1).filter(Boolean).map(line=>{const vals=[];let q=false,buf='';for(let i=0;i<line.length;i++){const ch=line[i]; if(ch==='"'){q=!q}else if(ch===','&&!q){vals.push(buf);buf=''} else buf+=ch} vals.push(buf); const o={}; heads.forEach((h,i)=>o[h]=vals[i]?.trim()); return o;})}
+async function loadData(){
+ const status=document.getElementById('dataStatus'); let msgs=[];
+ for(const y of [2015,2019]){try{const url=`https://raw.githubusercontent.com/Duppo3d/Nigerian-Elections-Game-theory-Codes/main/votes_${y}.csv`; const r=await fetch(url); if(!r.ok) throw new Error(r.status); const rows=csvParse(await r.text()); rows.forEach(row=>{const s=normName(row.State||row.STATE||row.state); const keys=Object.keys(row); const apc=+(row[keys.find(k=>/^APC$/i.test(k))]||'0').replace(/,/g,''); const pdp=+(row[keys.find(k=>/^PDP$/i.test(k))]||'0').replace(/,/g,''); stateData[y][s]={votes:{APC:apc,PDP:pdp},total:apc+pdp,winner:apc>pdp?'APC':'PDP'};}); msgs.push(`${y} results loaded`);}catch(e){msgs.push(`${y} unavailable`)}}
+ try{const u='https://raw.githubusercontent.com/Geoinfotech-Web/ggis-election-webapp/main/data/election-results/presidential-2023-states.json'; const r=await fetch(u); if(!r.ok) throw new Error(r.status); const j=await r.json(); for(const [s,v] of Object.entries(j.units||{})){const n=normName(s),votes=v.votes||{},total=Object.values(votes).reduce((a,b)=>a+(+b||0),0); stateData[2023][n]={votes,winner:v.party||Object.entries(votes).sort((a,b)=>b[1]-a[1])[0]?.[0],total};} msgs.push('2023 results loaded');}catch(e){msgs.push('2023 unavailable')}
+ try{
+   const urls=[
+     'https://code.highcharts.com/mapdata/countries/ng/ng-all.topo.json',
+     'https://cdn.jsdelivr.net/gh/deldersveld/topojson@master/countries/nigeria/nigeria-states.json',
+     'https://raw.githubusercontent.com/deldersveld/topojson/master/countries/nigeria/nigeria-states.json'
+   ];
+   let topo=null;
+   for(const u of urls){try{const r=await fetch(u); if(r.ok){topo=await r.json(); break}}catch(e){}}
+   if(!topo) throw new Error('No topojson');
+   const obj=topo.objects[Object.keys(topo.objects)[0]]; geoFeatures=topojson.feature(topo,obj).features; drawMap(); msgs.push('map geometry loaded'); document.getElementById('hudMapStatus').textContent='Ready';
+ }catch(e){drawFallbackGrid(); msgs.push('fallback map only'); document.getElementById('hudMapStatus').textContent='Fallback';}
+ status.textContent=msgs.join(' • '); document.getElementById('hudStateRows').textContent=Object.keys(stateData[2023]).length||'—'; updateHud(); updateRankings(2023); updateZoneChart(2023);
+}
+function featureName(f){const p=f.properties||{}; return normName(p.name||p.NAME_1||p.NAME||p.admin1Name||p.State||p.state)}
+function getState(y,s){return stateData[y]?.[s]||null}
+function getMetrics(y,s){const d=getState(+y,s); if(!d) return null; if(y==='2015') return {winner:d.winner,share:null,rank:null,margin:null,d}; const v=d.votes||{}, total=d.total||Object.values(v).reduce((a,b)=>a+(+b||0),0), av=+v.PDP||0; const sorted=Object.entries(v).sort((a,b)=>b[1]-a[1]); const rank=sorted.findIndex(([k])=>k==='PDP')+1; const max=sorted[0]?.[1]||0; return {winner:d.winner||sorted[0]?.[0],share:total?100*av/total:0,rank,margin:av-max,d}; }
+function colorFor(y,s){ const m=getMetrics(y,s); if(currentMode==='zone') return zoneColors[ZONES[s]]||'#cbd5e1'; if(y==='2007'||y==='2011') return '#d9e0e6'; if(!m) return '#d9e0e6'; if(y==='2015') return partyColors[m.winner]||'#94a3b8'; if(currentMode==='winner') return partyColors[m.winner]||'#94a3b8'; if(currentMode==='rank') return m.rank===1?'#0a8f5a':m.rank===2?'#d89d2a':m.rank===3?'#c55d5d':'#8091a2'; if(currentMode==='margin'){const x=m.margin; return x>=0?'#0a8f5a':x>-100000?'#f1b84b':x>-300000?'#dd7b4b':'#b23a48'} const sh=m.share||0; return sh>=60?'#075d36':sh>=45?'#0a8f5a':sh>=30?'#55ba80':sh>=15?'#a9dec0':'#e2f2e8'; }
+function updateHud(){document.getElementById('hudYear').textContent=currentYear; document.getElementById('hudMode').textContent=({'share':'Share','winner':'Winner','rank':'Rank','margin':'Margin','zone':'Zone'})[currentMode]||currentMode;}
+function drawMap(){const svg=d3.select('#ngMap'); svg.selectAll('*').remove(); mapG=svg.append('g'); const fc={type:'FeatureCollection',features:geoFeatures}; projection=d3.geoMercator().fitSize([760,520],fc); path=d3.geoPath(projection); zoomBehavior=d3.zoom().scaleExtent([1,8]).on('zoom',e=>mapG.attr('transform',e.transform)); svg.call(zoomBehavior);
+ mapG.selectAll('path').data(geoFeatures).join('path').attr('class','state-path').attr('d',path).attr('data-state',d=>featureName(d)).on('mousemove',(e,d)=>showTip(e,featureName(d))).on('mouseleave',hideTip).on('click',(e,d)=>selectState(featureName(d)));
+ mapG.selectAll('text').data(geoFeatures).join('text').attr('class','state-label').attr('transform',d=>`translate(${path.centroid(d)})`).text(d=>shortState(featureName(d)));
+ recolor();
+}
+function shortState(s){return s==='Akwa Ibom'?'A/Ibom':s==='Cross River'?'C/River':s==='Nasarawa'?'Nasar.':s==='FCT'?'FCT':s.length>10?s.slice(0,8):s}
+function drawFallbackGrid(){const svg=d3.select('#ngMap'); svg.selectAll('*').remove(); mapG=svg.append('g'); const names=Object.keys(ZONES); names.forEach((s,i)=>{const x=18+(i%7)*105,y=20+Math.floor(i/7)*78; mapG.append('rect').attr('x',x).attr('y',y).attr('width',95).attr('height',62).attr('rx',11).attr('class','state-path').attr('data-state',s).on('mousemove',e=>showTip(e,s)).on('mouseleave',hideTip).on('click',()=>selectState(s)); mapG.append('text').attr('x',x+47.5).attr('y',y+35).attr('class','state-label').style('font-size','9px').text(shortState(s));}); recolor();}
+document.getElementById('zoomReset').onclick=()=>{const svg=d3.select('#ngMap'); if(zoomBehavior) svg.transition().duration(350).call(zoomBehavior.transform,d3.zoomIdentity)};
+function recolor(){document.querySelectorAll('.state-path').forEach(el=>{const s=normName(el.getAttribute('data-state')); el.style.fill=colorFor(currentYear,s)}); renderLegend(); updateHud(); if(selectedState) renderPanel(selectedState);}
+function renderLegend(){const L=document.getElementById('legend'); let items=[]; if(currentMode==='zone') items=Object.entries(zoneColors); else if(currentYear==='2015'||currentMode==='winner') items=[['APC',partyColors.APC],['PDP',partyColors.PDP],['LP',partyColors.LP],['NNPP',partyColors.NNPP],['No data','#d9e0e6']]; else if(currentMode==='rank') items=[['1st','#0a8f5a'],['2nd','#d89d2a'],['3rd','#c55d5d'],['4th+','#8091a2'],['No data','#d9e0e6']]; else items=[['60%+','#075d36'],['45–59%','#0a8f5a'],['30–44%','#55ba80'],['15–29%','#a9dec0'],['<15%','#e2f2e8'],['No data','#d9e0e6']]; L.innerHTML=items.map(([n,c])=>`<span><i class="dot" style="background:${c}"></i>${n}</span>`).join('');}
+function showTip(e,s){const t=document.getElementById('tooltip'); let html=`<strong>${s}</strong><br>${currentYear}`; const m=getMetrics(currentYear,s); if(currentYear==='2007') html+='<br>Official state-level result unavailable.'; else if(currentYear==='2011') html+='<br>Atiku not on general-election ballot.'; else if(currentYear==='2015'){ if(m) html+=`<br>Buhari/APC: ${(m.d.votes.APC||0).toLocaleString()}<br>Jonathan/PDP: ${(m.d.votes.PDP||0).toLocaleString()}<br>Winner: ${m.winner}`; } else if(m){ html+=`<br>Atiku/PDP: ${(m.d.votes.PDP||0).toLocaleString()} (${m.share.toFixed(1)}%)<br>Winner: ${m.winner}<br>Rank: ${m.rank}`; } t.innerHTML=html; t.style.display='block'; t.style.left=(e.clientX+14)+'px'; t.style.top=(e.clientY+14)+'px'; }
+function hideTip(){document.getElementById('tooltip').style.display='none'}
+function selectState(s){selectedState=s; renderPanel(s)}
+function renderPanel(s){const p=document.getElementById('statePanel'); const y=currentYear, zone=ZONES[s]||'—'; if(y==='2007'){p.innerHTML=`<h3>${s}</h3><span class="badge warn">2007 state-level limitation</span><p>Atiku was on the ballot under AC, but an authoritative official INEC state-by-state presidential table is not available for precise mapping. No state vote is shown.</p><div class="minirow"><span>Zone</span><strong>${zone}</strong></div>`;return} if(y==='2011'){p.innerHTML=`<h3>${s}</h3><span class="badge noballot">2011 — not on ballot</span><p>Atiku lost the PDP presidential primary to Goodluck Jonathan and therefore had no presidential general-election vote in this state.</p><div class="minirow"><span>Zone</span><strong>${zone}</strong></div>`;return} const m=getMetrics(y,s); if(!m){p.innerHTML=`<h3>${s}</h3><p>No state data loaded for ${y}.</p>`;return}
+ if(y==='2015'){const apc=m.d.votes.APC||0,pdp=m.d.votes.PDP||0; p.innerHTML=`<h3>${s}</h3><span class="badge noballot">2015 political-influence context</span><div class="minirow"><span>Buhari • APC</span><strong>${apc.toLocaleString()}</strong></div><div class="minirow"><span>Jonathan • PDP</span><strong>${pdp.toLocaleString()}</strong></div><div class="minirow"><span>Winner</span><strong>${m.winner}</strong></div><div class="minirow"><span>Zone</span><strong>${zone}</strong></div><p class="note" style="margin-top:12px">${s==='Adamawa'?'Atiku’s home state. Result is politically meaningful but does not prove a quantifiable number of “Atiku votes” for Buhari.':'Atiku was not on the ballot. This panel shows the state result context only.'}</p><div class="badge">Evidence level: ${s==='Adamawa'?'Moderate contextual evidence':'Weak / insufficient state-specific evidence'}</div>`; return}
+ const v=m.d.votes||{}, sorted=Object.entries(v).sort((a,b)=>b[1]-a[1]); p.innerHTML=`<h3>${s}</h3><span class="badge cand">${y} presidential result</span>${sorted.map(([party,val],i)=>`<div class="minirow"><span>${party}${party==='PDP'?' — Atiku':''}</span><strong>${(+val).toLocaleString()}${i===0?' ★':''}</strong></div>`).join('')}<div class="minirow"><span>Atiku rank</span><strong>${m.rank}</strong></div><div class="minirow"><span>Atiku share*</span><strong>${m.share.toFixed(2)}%</strong></div><div class="minirow"><span>Zone</span><strong>${zone}</strong></div><div class="panel-mini-chart"><canvas id="miniStateChart"></canvas></div><p class="note">*Share uses the parties available in the loaded dataset for this year.</p>`; renderMiniStateChart(s); }
+let miniChart=null; function renderMiniStateChart(s){const vals=[2019,2023].map(y=>{const m=getMetrics(String(y),s); return m?m.share:0}); const canvas=document.getElementById('miniStateChart'); if(!canvas) return; if(miniChart) miniChart.destroy(); miniChart=new Chart(canvas,{type:'bar',data:{labels:['2019','2023'],datasets:[{label:'Atiku share*',data:vals}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,max:100}}}})}
+document.querySelectorAll('#yearControls .pill').forEach(b=>b.onclick=()=>{document.querySelectorAll('#yearControls .pill').forEach(x=>x.classList.remove('active')); b.classList.add('active'); currentYear=b.dataset.year; recolor();});
+document.querySelectorAll('#modeControls .pill').forEach(b=>b.onclick=()=>{document.querySelectorAll('#modeControls .pill').forEach(x=>x.classList.remove('active')); b.classList.add('active'); currentMode=b.dataset.mode; recolor();});
+function updateRankings(y){const entries=Object.keys(stateData[y]||{}).map(s=>({s,m:getMetrics(String(y),s)})).filter(x=>x.m); const share=[...entries].sort((a,b)=>b.m.share-a.m.share); const votes=[...entries].sort((a,b)=>(b.m.d.votes.PDP||0)-(a.m.d.votes.PDP||0)); const weak=[...entries].sort((a,b)=>a.m.share-b.m.share); const won=entries.filter(x=>x.m.winner==='PDP').sort((a,b)=>b.m.share-a.m.share); const f=(x,w)=>w==='votes'?`${x.s} — ${(x.m.d.votes.PDP||0).toLocaleString()}`:`${x.s} — ${x.m.share.toFixed(1)}%`; document.getElementById('topShare').innerHTML=share.slice(0,10).map(x=>`<li>${f(x,'share')}</li>`).join('')||'<li>Data unavailable</li>'; document.getElementById('topVotes').innerHTML=votes.slice(0,10).map(x=>`<li>${f(x,'votes')}</li>`).join('')||'<li>Data unavailable</li>'; document.getElementById('weakShare').innerHTML=weak.slice(0,10).map(x=>`<li>${f(x,'share')}</li>`).join('')||'<li>Data unavailable</li>'; document.getElementById('wonStates').innerHTML=won.map(x=>`<li>${x.s}</li>`).join('')||'<li>Data unavailable</li>'; }
+document.querySelectorAll('.rankyear').forEach(b=>b.onclick=()=>{document.querySelectorAll('.rankyear').forEach(x=>x.classList.remove('active')); b.classList.add('active'); const y=+b.dataset.rankyear; updateRankings(y); updateZoneChart(y);});
+let zoneChart=null; function updateZoneChart(y){const zones=['North-West','North-East','North-Central','South-West','South-East','South-South']; const vals=zones.map(z=>{let a=0,t=0; for(const [s,d] of Object.entries(stateData[y]||{})){ if(ZONES[s]===z){a+=+(d.votes.PDP||0); t+=d.total||Object.values(d.votes).reduce((x,q)=>x+(+q||0),0)}} return t?100*a/t:0;}); if(zoneChart)zoneChart.destroy(); zoneChart=new Chart(document.getElementById('zoneChart'),{type:'bar',data:{labels:zones,datasets:[{label:`Atiku/PDP share of loaded-party totals — ${y}`,data:vals}]},options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',plugins:{legend:{position:'bottom'}},scales:{x:{beginAtZero:true,max:100,title:{display:true,text:'Percent'}}}}});}
+loadData();
+</script>
+</body>
+</html>
